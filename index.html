@@ -134,6 +134,35 @@ header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:0 28px;
 
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(8px);background:#13141c;border:1px solid rgba(212,168,67,.3);color:var(--txt);padding:11px 24px;border-radius:10px;font-size:12px;font-weight:500;z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.6)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ADMIN PANEL */
+.admin-bar{background:#1a0a00;border-bottom:1px solid rgba(212,168,67,.3);padding:0 28px;height:44px;display:flex;align-items:center;gap:12px;font-size:12px}
+.admin-bar.h{display:none}
+.admin-badge{background:rgba(212,168,67,.15);color:var(--gold);border:1px solid rgba(212,168,67,.3);padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.admin-sep{color:var(--bdr)}
+.admin-link{color:var(--muted);cursor:pointer;font-size:11px;transition:color .15s;background:none;border:none;font-family:inherit;padding:0}
+.admin-link:hover{color:var(--gold)}
+.admin-link.danger{color:#c04040}
+.admin-link.danger:hover{color:#ff6060}
+.pending-badge{background:#c04040;color:#fff;border-radius:10px;font-size:9px;padding:1px 6px;font-weight:700;margin-left:4px}
+
+/* PENDING MODAL */
+.pend-item{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:8px;margin-bottom:8px}
+.pend-cover{width:52px;height:72px;object-fit:cover;border-radius:3px;flex-shrink:0}
+.pend-cover-fall{width:52px;height:72px;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:rgba(255,255,255,.7);text-align:center;padding:4px}
+.pend-info{flex:1;min-width:0}
+.pend-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pend-meta{font-size:10px;color:var(--muted)}
+.pend-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-approve{background:#1a5c2a;border:1px solid #2a8c3a;color:#4cdf70;padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s}
+.btn-approve:hover{background:#2a7c3a}
+.btn-reject{background:#5c1a1a;border:1px solid #8c2a2a;color:#df4c4c;padding:6px 14px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s}
+.btn-reject:hover{background:#7c2a2a}
+
+/* CAT MANAGE */
+.cat-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:6px;margin-bottom:6px}
+.cat-item-label{flex:1;font-size:13px;color:var(--txt)}
+.cat-item-id{font-size:10px;color:var(--muted);font-family:monospace}
 #coverPreview{image-rendering:auto}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--surf)}
@@ -151,16 +180,20 @@ header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:0 28px;
   </div>
 </header>
 
-<div class="filters">
+<!-- ADMIN BAR -->
+<div class="admin-bar h" id="adminBar">
+  <span class="admin-badge">👑 Admin</span>
+  <span class="admin-sep">·</span>
+  <button class="admin-link" id="btnPending">📋 Duyệt sách<span class="pending-badge h" id="pendingCount">0</span></button>
+  <span class="admin-sep">·</span>
+  <button class="admin-link" id="btnManageCats">🏷️ Quản lý danh mục</button>
+  <span class="admin-sep">·</span>
+  <button class="admin-link danger" id="btnLogout">Đăng xuất</button>
+</div>
+
+<div class="filters" id="filterBar">
   <span class="fl">Danh mục:</span>
   <button class="pill on" data-cat="all">Tất cả</button>
-  <button class="pill" data-cat="price-action">Price Action</button>
-  <button class="pill" data-cat="technical">Phân tích kỹ thuật</button>
-  <button class="pill" data-cat="volume">Volume & Order Flow</button>
-  <button class="pill" data-cat="forex">Forex</button>
-  <button class="pill" data-cat="psychology">Tâm lý</button>
-  <button class="pill" data-cat="strategy">Chiến lược</button>
-  <button class="pill" data-cat="other">Khác</button>
 </div>
 
 <div class="stats"><span id="stat"></span><span style="font-size:10px">hover để xem · click để đọc</span></div>
@@ -183,15 +216,7 @@ header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:0 28px;
       </div>
       <div class="fg" style="margin-top:13px">
         <label>Danh mục mặc định</label>
-        <select id="inCat">
-          <option value="price-action">Price Action</option>
-          <option value="technical">Phân tích kỹ thuật</option>
-          <option value="volume">Volume & Order Flow</option>
-          <option value="forex">Forex</option>
-          <option value="psychology">Tâm lý</option>
-          <option value="strategy">Chiến lược</option>
-          <option value="other">Khác</option>
-        </select>
+        <select id="inCat"></select>
       </div>
 
       <!-- COVER PICKER — only shown for single file -->
@@ -214,6 +239,48 @@ header{background:var(--surf);border-bottom:1px solid var(--bdr);padding:0 28px;
       <div class="mfoot">
         <button class="btnc" id="moCancel">Hủy</button>
         <button class="btnok" id="btnSave" disabled>Upload lên cloud</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="ov h" id="adminLoginModal">
+  <div class="modal" style="width:360px">
+    <button class="mx" onclick="document.getElementById('adminLoginModal').classList.add('h')">✕</button>
+    <h2>🔐 Đăng nhập Admin</h2>
+    <div class="fg" style="margin-top:8px">
+      <label>Mật khẩu</label>
+      <input id="adminPwInput" type="password" placeholder="Nhập mật khẩu admin...">
+    </div>
+    <div id="adminLoginErr" style="color:#c04040;font-size:12px;margin-top:6px;display:none">Sai mật khẩu</div>
+    <div class="mfoot">
+      <button class="btnc" onclick="document.getElementById('adminLoginModal').classList.add('h')">Hủy</button>
+      <button class="btnok" id="btnAdminLogin">Đăng nhập</button>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING MODAL -->
+<div class="ov h" id="pendingModal">
+  <div class="modal" style="width:560px;max-height:80vh;overflow-y:auto">
+    <button class="mx" onclick="document.getElementById('pendingModal').classList.add('h')">✕</button>
+    <h2>📋 Sách chờ duyệt</h2>
+    <div id="pendingList" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- MANAGE CATS MODAL -->
+<div class="ov h" id="catModal">
+  <div class="modal" style="width:460px">
+    <button class="mx" onclick="document.getElementById('catModal').classList.add('h')">✕</button>
+    <h2>🏷️ Quản lý danh mục</h2>
+    <div id="catList" style="margin-top:12px;max-height:260px;overflow-y:auto"></div>
+    <div style="border-top:1px solid var(--bdr);margin-top:14px;padding-top:14px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600">Thêm danh mục mới</div>
+      <div style="display:flex;gap:8px">
+        <input id="newCatLabel" type="text" placeholder="Tên hiển thị (VD: Crypto)" style="flex:1;background:#1a1b24;border:1px solid var(--bdr);color:var(--txt);padding:8px 11px;border-radius:8px;font-size:13px;font-family:inherit;outline:none">
+        <button class="btnok" id="btnAddCat" style="white-space:nowrap">Thêm</button>
       </div>
     </div>
   </div>
@@ -289,15 +356,8 @@ function pdfPublicUrl(path){
 }
 
 // ── CATS ────────────────────────────────────────────────
-const CATS={
-  'price-action':{l:'Price Action',g:['#18083c','#38168a']},
-  'technical':{l:'Kỹ thuật',g:['#061c0b','#145a2c']},
-  'volume':{l:'Volume',g:['#041428','#0e3278']},
-  'forex':{l:'Forex',g:['#2a1002','#782c06']},
-  'psychology':{l:'Tâm lý',g:['#1c0420','#640e58']},
-  'strategy':{l:'Chiến lược',g:['#1a1000','#5a4400']},
-  'other':{l:'Khác',g:['#121212','#363636']}
-};
+// cats loaded dynamically from Supabase
+let cats={};
 
 let books=[], filterCat='all', qry='';
 let pdfDoc=null, curSpread=1, totalPg=0, zoom=1.0, busy=false;
@@ -333,7 +393,7 @@ function render(){
   filtered.forEach(b=>{const c=b.cat||'other';(grp[c]=grp[c]||[]).push(b)});
   const show=filterCat==='all'?order.filter(c=>grp[c]):[filterCat].filter(c=>grp[c]);
   wrap.innerHTML=show.map(c=>{
-    const ci=CATS[c]||{l:c,g:['#222','#444']};
+    const ci=cats[c]||{l:c,g:['#1a1a2e','#16213e']};
     return `<div class="catsec">
       <div class="cattitle">${ci.l}<span class="catcnt">${grp[c].length}</span></div>
       <div class="shelf">
@@ -369,10 +429,150 @@ function render(){
   });
 }
 
+// ── ADMIN STATE ────────────────────────────────────────
+let isAdmin = false;
+
+function setAdmin(val){
+  isAdmin=val;
+  $('adminBar').classList.toggle('h',!val);
+  if(val){ loadPending(); loadCats(); }
+}
+
+async function checkAdminPw(pw){
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/admin_config?key=eq.admin_password&select=value`,{headers:sbHeaders});
+    const d=await r.json();
+    return d[0]?.value===pw;
+  }catch{return false}
+}
+
+// ── CATEGORIES ──────────────────────────────────────────
+let cats={};
+
+async function loadCats(){
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/categories?order=created_at.asc`,{headers:sbHeaders});
+    const data=await r.json();
+    cats={};
+    data.forEach(cat=>{ cats[cat.id]={l:cat.label, g:catColorMap(cat.id)}; });
+    renderFilterBar();
+  }catch(e){ console.error('loadCats',e) }
+}
+
+function catColorMap(id){
+  const map={'price-action':['#18083c','#38168a'],'technical':['#061c0b','#145a2c'],'volume':['#041428','#0e3278'],'forex':['#2a1002','#782c06'],'psychology':['#1c0420','#640e58'],'strategy':['#1a1000','#5a4400'],'other':['#121212','#363636']};
+  return map[id]||['#1a1a2e','#16213e'];
+}
+
+function renderFilterBar(){
+  const bar=$('filterBar');
+  const allBtn='<button class="pill on" data-cat="all">Tất cả</button>';
+  const catBtns=Object.entries(cats).map(([id,ci])=>`<button class="pill" data-cat="${id}">${ci.l}</button>`).join('');
+  bar.innerHTML=`<span class="fl">Danh mục:</span>${allBtn}${catBtns}`;
+  bar.querySelectorAll('.pill').forEach(p=>{
+    p.onclick=()=>{ bar.querySelectorAll('.pill').forEach(x=>x.classList.remove('on')); p.classList.add('on'); filterCat=p.dataset.cat; render(); };
+  });
+  // restore active filter
+  const active=bar.querySelector(`[data-cat="${filterCat}"]`);
+  if(active){ bar.querySelectorAll('.pill').forEach(x=>x.classList.remove('on')); active.classList.add('on'); }
+}
+
+async function addCat(label){
+  const id=label.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  await fetch(`${SB_URL}/rest/v1/categories`,{method:'POST',headers:{...sbHeaders,'Prefer':'return=minimal'},body:JSON.stringify({id,label})});
+  await loadCats();
+  renderCatList();
+}
+async function deleteCat(id){
+  await fetch(`${SB_URL}/rest/v1/categories?id=eq.${id}`,{method:'DELETE',headers:sbHeaders});
+  await loadCats();
+  renderCatList();
+}
+
+function renderCatList(){
+  const list=$('catList');
+  const entries=Object.entries(cats);
+  if(!entries.length){list.innerHTML='<div style="color:var(--muted);font-size:12px">Chưa có danh mục</div>';return}
+  list.innerHTML=entries.map(([id,ci])=>`<div class="cat-item">
+    <span class="cat-item-label">${ci.l}</span>
+    <span class="cat-item-id">${id}</span>
+    ${isAdmin?`<button onclick="deleteCat('${id}')" style="background:none;border:none;color:#c04040;cursor:pointer;font-size:14px;padding:0 4px" title="Xóa">✕</button>`:''}
+  </div>`).join('');
+}
+
+// ── PENDING BOOKS ────────────────────────────────────────
+let pendingBooks=[];
+
+async function loadPending(){
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/books?status=eq.pending&order=added_at.desc`,{headers:sbHeaders});
+    pendingBooks=await r.json();
+    const cnt=$('pendingCount');
+    if(pendingBooks.length>0){cnt.textContent=pendingBooks.length;cnt.classList.remove('h')}
+    else{cnt.classList.add('h')}
+  }catch(e){console.error('loadPending',e)}
+}
+
+function renderPendingList(){
+  const list=$('pendingList');
+  if(!pendingBooks.length){
+    list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:13px">Không có sách nào chờ duyệt 🎉</div>';
+    return;
+  }
+  list.innerHTML=pendingBooks.map(b=>{
+    const ci=cats[b.cat]||{l:b.cat,g:['#222','#444']};
+    const coverEl=b.cover
+      ?`<img class="pend-cover" src="${b.cover}" alt="">`
+      :`<div class="pend-cover-fall" style="background:linear-gradient(155deg,${ci.g[0]},${ci.g[1]})">${b.title.slice(0,20)}</div>`;
+    return `<div class="pend-item" id="pend-${b.id}">
+      ${coverEl}
+      <div class="pend-info">
+        <div class="pend-title">${b.title}</div>
+        <div class="pend-meta">${ci.l} · ${b.size?(b.size/1048576).toFixed(1)+' MB':''} · ${b.submitted_by||'Ẩn danh'}</div>
+      </div>
+      <div class="pend-actions">
+        <button class="btn-approve" onclick="approveBook('${b.id}')">✓ Duyệt</button>
+        <button class="btn-reject" onclick="rejectBook('${b.id}')">✕ Từ chối</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approveBook(id){
+  try{
+    await fetch(`${SB_URL}/rest/v1/books?id=eq.${id}`,{method:'PATCH',headers:{...sbHeaders,'Prefer':'return=minimal'},body:JSON.stringify({status:'approved'})});
+    pendingBooks=pendingBooks.filter(b=>b.id!==id);
+    const el=document.getElementById('pend-'+id);
+    if(el){el.style.opacity='.3';setTimeout(()=>el.remove(),300)}
+    const cnt=$('pendingCount');
+    if(pendingBooks.length>0){cnt.textContent=pendingBooks.length}else{cnt.classList.add('h')}
+    await loadBooks();
+    toast('✓ Đã duyệt sách');
+  }catch(e){toast('Lỗi: '+e.message)}
+}
+
+async function rejectBook(id){
+  if(!confirm('Từ chối và xóa sách này?'))return;
+  try{
+    const b=pendingBooks.find(x=>x.id===id);
+    if(b?.pdf_path) await sbDeleteFile(b.pdf_path);
+    await sbDelete(id);
+    pendingBooks=pendingBooks.filter(b=>b.id!==id);
+    const el=document.getElementById('pend-'+id);
+    if(el){el.style.opacity='.3';setTimeout(()=>el.remove(),300)}
+    const cnt=$('pendingCount');
+    if(pendingBooks.length>0){cnt.textContent=pendingBooks.length}else{cnt.classList.add('h')}
+    toast('Đã từ chối sách');
+  }catch(e){toast('Lỗi: '+e.message)}
+}
+
 // ── LOAD FROM SUPABASE ──────────────────────────────────
 async function loadBooks(){
   try{
-    books=await sbSelect();
+    // Only load approved books for regular view
+    const r=await fetch(`${SB_URL}/rest/v1/books?status=eq.approved&order=added_at.desc`,{headers:sbHeaders});
+    if(!r.ok)throw new Error(await r.text());
+    books=await r.json();
     render();
   }catch(err){
     $('shwrap').innerHTML=`<div class="empty"><h3>Lỗi kết nối Supabase</h3><p>${err.message}</p></div>`;
@@ -380,7 +580,16 @@ async function loadBooks(){
 }
 
 // ── UPLOAD ──────────────────────────────────────────────
-function openModal(){$('moWrap').classList.remove('h');$('fselName').innerHTML='';$('batchList').innerHTML='';$('btnSave').disabled=true;pendingFiles=[]}
+function openModal(){
+  $('moWrap').classList.remove('h');
+  $('fselName').innerHTML='';
+  $('batchList').innerHTML='';
+  $('btnSave').disabled=true;
+  pendingFiles=[];
+  // populate cats
+  const sel=$('inCat');
+  sel.innerHTML=Object.entries(cats).map(([id,ci])=>`<option value="${id}">${ci.l}</option>`).join('');
+}
 function closeModal(){$('moWrap').classList.add('h');pendingFiles=[];coverPdf=null;$('coverPicker').style.display='none';}
 $('btnAdd').onclick=openModal;
 $('moClose').onclick=$('moCancel').onclick=closeModal;
@@ -455,7 +664,7 @@ $('btnSave').onclick=async()=>{
       const id='b'+Date.now()+'x'+i;
       const path=id+'/'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
       await sbUploadPdf(path,arrayBuf);
-      const row={id,title:f.name.replace(/\.pdf$/i,'').replace(/[_-]/g,' ').trim(),cat,size:f.size,cover,pdf_path:path,added_at:new Date().toISOString()};
+      const row={id,title:f.name.replace(/\.pdf$/i,'').replace(/[_-]/g,' ').trim(),cat,size:f.size,cover,pdf_path:path,added_at:new Date().toISOString(),status:isAdmin?'approved':'pending'};
       await sbInsert(row);
       books.unshift(row);render();
       if(biEl){biEl.classList.remove('loading');biEl.classList.add('done');biEl.querySelector('.bi-status').textContent='✓ xong'}
@@ -466,7 +675,7 @@ $('btnSave').onclick=async()=>{
     }
   }
   closeModal();
-  toast('✓ Đã upload '+ok+'/'+pendingFiles.length+' sách lên cloud');
+  toast(isAdmin?('✓ Đã upload '+ok+'/'+pendingFiles.length+' sách'):('✓ Đã gửi '+ok+' sách — chờ admin duyệt'));
   btn.textContent='Upload lên cloud';btn.disabled=false;
 };
 
@@ -572,8 +781,51 @@ document.querySelectorAll('.pill').forEach(p=>{
 });
 let qt;$('q').addEventListener('input',e=>{clearTimeout(qt);qt=setTimeout(()=>{qry=e.target.value.trim();render()},200)});
 
+// ── ADMIN EVENTS ─────────────────────────────────────────
+// Admin login button in header
+const adminTrigger=document.createElement('button');
+adminTrigger.textContent='🔐';
+adminTrigger.title='Admin';
+adminTrigger.style.cssText='background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 4px;margin-left:4px';
+adminTrigger.onclick=()=>{
+  if(isAdmin){setAdmin(false);toast('Đã đăng xuất admin')}
+  else{$('adminLoginModal').classList.remove('h');$('adminPwInput').value='';$('adminLoginErr').style.display='none';setTimeout(()=>$('adminPwInput').focus(),100)}
+};
+document.querySelector('.hdr-r').appendChild(adminTrigger);
+
+$('btnAdminLogin').onclick=async()=>{
+  const pw=$('adminPwInput').value;
+  const ok=await checkAdminPw(pw);
+  if(ok){$('adminLoginModal').classList.add('h');setAdmin(true);toast('✓ Đăng nhập admin thành công')}
+  else{$('adminLoginErr').style.display='block'}
+};
+$('adminPwInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('btnAdminLogin').click()});
+
+$('btnLogout').onclick=()=>{setAdmin(false);toast('Đã đăng xuất')};
+
+$('btnPending').onclick=()=>{
+  renderPendingList();
+  $('pendingModal').classList.remove('h');
+};
+
+$('btnManageCats').onclick=()=>{
+  renderCatList();
+  $('catModal').classList.remove('h');
+};
+
+$('btnAddCat').onclick=async()=>{
+  const label=$('newCatLabel').value.trim();
+  if(!label)return;
+  await addCat(label);
+  $('newCatLabel').value='';
+  toast('✓ Đã thêm danh mục "'+label+'"');
+};
+
 // ── INIT ─────────────────────────────────────────────────
-loadBooks();
+(async()=>{
+  await loadCats();
+  await loadBooks();
+})();
 </script>
 
 <div style="position:fixed;bottom:0;left:0;right:0;background:var(--surf);border-top:1px solid var(--bdr);height:36px;display:flex;align-items:center;justify-content:center;gap:10px;z-index:40;padding:0 20px">
