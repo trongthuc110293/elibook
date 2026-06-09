@@ -388,10 +388,13 @@ function render(){
     wrap.innerHTML=`<div class="empty"><div style="font-size:52px;opacity:.22">📚</div><h3>${books.length?'Không tìm thấy':'Chưa có sách nào'}</h3><p>${books.length?'Thử từ khóa khác hoặc đổi danh mục':'Nhấn <strong>+ Thêm sách</strong> để upload PDF lên cloud'}</p></div>`;
     return;
   }
-  const order=['price-action','technical','volume','forex','psychology','strategy','other'];
+  // Use cats order if available, else fallback
+  const catKeys=Object.keys(cats).length?Object.keys(cats):['price-action','technical','volume','forex','psychology','strategy','other'];
   const grp={};
-  filtered.forEach(b=>{const c=b.cat||'other';(grp[c]=grp[c]||[]).push(b)});
-  const show=filterCat==='all'?order.filter(c=>grp[c]):[filterCat].filter(c=>grp[c]);
+  filtered.forEach(b=>{const key=b.cat||'other';(grp[key]=grp[key]||[]).push(b)});
+  // Include any cat not in catKeys (for books with unknown cats)
+  Object.keys(grp).forEach(k=>{ if(!catKeys.includes(k)) catKeys.push(k); });
+  const show=filterCat==='all'?catKeys.filter(c=>grp[c]):[filterCat].filter(c=>grp[c]);
   wrap.innerHTML=show.map(c=>{
     const ci=cats[c]||{l:c,g:['#1a1a2e','#16213e']};
     return `<div class="catsec">
@@ -569,12 +572,18 @@ async function rejectBook(id){
 // ── LOAD FROM SUPABASE ──────────────────────────────────
 async function loadBooks(){
   try{
-    // Only load approved books for regular view
-    const r=await fetch(`${SB_URL}/rest/v1/books?status=eq.approved&order=added_at.desc`,{headers:sbHeaders});
+    // Try approved first, fallback to all if status column issue
+    let r=await fetch(`${SB_URL}/rest/v1/books?status=eq.approved&order=added_at.desc`,{headers:sbHeaders});
+    if(!r.ok){
+      // fallback: load all books
+      r=await fetch(`${SB_URL}/rest/v1/books?order=added_at.desc`,{headers:sbHeaders});
+    }
     if(!r.ok)throw new Error(await r.text());
     books=await r.json();
+    console.log('books:', books.length, books.map(b=>b.title));
     render();
   }catch(err){
+    console.error('loadBooks:', err);
     $('shwrap').innerHTML=`<div class="empty"><h3>Lỗi kết nối Supabase</h3><p>${err.message}</p></div>`;
   }
 }
@@ -823,8 +832,14 @@ $('btnAddCat').onclick=async()=>{
 
 // ── INIT ─────────────────────────────────────────────────
 (async()=>{
-  await loadCats();
-  await loadBooks();
+  try{
+    await loadCats();
+    console.log('cats loaded:', Object.keys(cats));
+  }catch(e){ console.error('loadCats error:', e); }
+  try{
+    await loadBooks();
+    console.log('books loaded:', books.length);
+  }catch(e){ console.error('loadBooks error:', e); }
 })();
 </script>
 
