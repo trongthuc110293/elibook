@@ -484,14 +484,21 @@ function calcScale(){
 }
 async function drawPage(num,canvas){
   const sc=calcScale();
+  const dpr=window.devicePixelRatio||1;
   if(!pdfDoc||num<1||num>totalPg){
-    canvas.width=Math.round(595*sc);canvas.height=Math.round(841*sc);
-    const ctx=canvas.getContext('2d');ctx.fillStyle='#f6f2ec';ctx.fillRect(0,0,canvas.width,canvas.height);
+    const w=Math.round(595*sc), h=Math.round(841*sc);
+    canvas.width=w*dpr; canvas.height=h*dpr;
+    canvas.style.width=w+'px'; canvas.style.height=h+'px';
+    const ctx=canvas.getContext('2d');
+    ctx.scale(dpr,dpr);
+    ctx.fillStyle='#f6f2ec'; ctx.fillRect(0,0,w,h);
     return;
   }
   const pg=await pdfDoc.getPage(num);
-  const vp=pg.getViewport({scale:sc});
-  canvas.width=vp.width;canvas.height=vp.height;
+  const vp=pg.getViewport({scale:sc*dpr});
+  canvas.width=vp.width; canvas.height=vp.height;
+  canvas.style.width=Math.round(vp.width/dpr)+'px';
+  canvas.style.height=Math.round(vp.height/dpr)+'px';
   await pg.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
 }
 async function showSpread(s){
